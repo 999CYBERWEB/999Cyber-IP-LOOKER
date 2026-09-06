@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP_LOOKER | 999CYBER</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+
+        body {
+            background: #050505;
+            color: #992222;
+            min-height: 100vh;
+            padding: 20px;
+            background-image:
+                linear-gradient(rgba(80,0,0,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(80,0,0,0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .scanlines {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.15),
+                rgba(0,0,0,0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            z-index: 100;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* KEY SYSTEM */
+        #keyScreen {
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .key-box {
+            width: 100%;
+            max-width: 500px;
+            background: #0a0a0a;
+            border: 1px solid #441111;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(80,0,0,0.25);
+        }
+
+        .key-box h1 {
+            color: #882222;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+
+        .key-box p {
+            color: #663333;
+            margin-bottom: 25px;
+        }
+
+        .key-input {
+            width: 100%;
+            min-width: 0;
+            background: #000;
+            border: 1px solid #441111;
+            color: #bb6666;
+            padding: 14px;
+            font-size: 1rem;
+            outline: none;
+            margin-bottom: 12px;
+        }
+
+        .key-input:focus {
+            border-color: #772222;
+        }
+
+        .key-btn {
+            width: 100%;
+            background: #551111;
+            color: #dd9999;
+            border: none;
+            padding: 14px;
+            cursor: pointer;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .key-btn:hover {
+            background: #662222;
+        }
+
+        .key-error {
+            color: #aa3333;
+            margin-top: 15px;
+            display: none;
+        }
+
+        #app {
+            display: none;
+        }
+
+        .ascii-art {
+            text-align: center;
+            color: #771818;
+            text-shadow: 0 0 4px #551111;
+            font-size: 1.8rem;
+            line-height: 1.2;
+            margin: 20px 0;
+            white-space: pre;
+            font-weight: bold;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #551111;
+            padding-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            color: #882222;
+            text-shadow: 0 0 6px #441111;
+            letter-spacing: 4px;
+        }
+
+        .header p {
+            margin-top: 8px;
+        }
+
+        .glitch {
+            animation: glitch 1.5s infinite;
+        }
+
+        @keyframes glitch {
+            0%,90%,100% {
+                opacity: 1;
+            }
+
+            91% {
+                opacity: 0.9;
+                text-shadow: 1px 0 #000, -1px 0 #662222;
+            }
+
+            92% {
+                opacity: 1;
+            }
+        }
+
+        .search-box {
+            background: #0a0a0a;
+            border: 1px solid #441111;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 8px rgba(60,0,0,0.2);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #serverInput {
+            flex: 1;
+            min-width: 250px;
+            background: #000;
+            border: 1px solid #441111;
+            color: #993333;
+            padding: 14px 18px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        #serverInput::placeholder {
+            color: #552222;
+        }
+
+        button {
+            background: #551111;
+            color: #dd9999;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        button:hover {
+            background: #662222;
+        }
+
+        button:disabled {
+            background: #331111;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .result-box {
+            background: #0a0a0a;
+            border: 1px solid #441111;
+            padding: 25px;
+            box-shadow: 0 0 8px rgba(60,0,0,0.2);
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-row {
+            padding: 12px 0;
+            border-bottom: 1px dashed #220808;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            width: 140px;
+            color: #773333;
+            font-weight: bold;
+        }
+
+        .value {
+            flex: 1;
+            color: #bb8888;
+            word-break: break-all;
+        }
+
+        .ip-full {
+            color: #883333;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .status-online {
+            color: #227733;
+        }
+
+        .status-offline {
+            color: #772222;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #773333;
+            display: none;
+        }
+
+        .error-box {
+            background: #150505;
+            border: 1px solid #441111;
+            padding: 20px;
+            margin-top: 20px;
+            color: #994444;
+            display: none;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px 0;
+        }
+
+        .discord-link {
+            color: #772222;
+            text-decoration: none;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+        }
+
+        .discord-link:hover {
+            color: #993333;
+        }
+
+        @media (max-width: 600px) {
+            .ascii-art {
+                font-size: 0.8rem;
+                overflow-x: auto;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            #serverInput,
+            .input-group button {
+                width: 100%;
+            }
+
+            .label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="scanlines"></div>
+
+<!-- KEY SCREEN -->
+<div id="keyScreen">
+    <div class="container">
+        <div class="key-box">
+
+            <h1>999CYBER</h1>
+
+            <p>» ENTER ACCESS KEY «</p>
+
+            <input
+                type="password"
+                id="keyInput"
+                class="key-input"
+                placeholder="Enter key..."
+                autocomplete="off"
+            >
+
+            <button id="keyBtn" class="key-btn">
+                UNLOCK
+            </button>
+
+            <div id="keyError" class="key-error">
+                ⚠ INVALID KEY
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+    <div class="container">
+
+        <div class="ascii-art">
+████████╗██╗   ██╗███████╗███████╗
+╚══██╔══╝██║   ██║██╔════╝██╔════╝
+   ██║   ██║   ██║███████╗███████╗
+   ██║   ██║   ██║╚════██║╚════██║
+   ██║   ╚██████╔╝███████║███████║
+   ╚═╝    ╚═════╝ ╚══════╝╚══════╝
+        </div>
+
+        <div class="header">
+            <h1 class="glitch">Made By 999Kiyo</h1>
+            <p>» Minecraft IP Looker «</p>
+        </div>
+
+        <div class="search-box">
+            <div class="input-group">
+
+                <input
+                    type="text"
+                    id="serverInput"
+                    placeholder="ex: play.example.com"
+                >
+
+                <button id="lookupBtn">
+                    CHECK
+                </button>
+
+            </div>
+        </div>
+
+        <div id="loading" class="loading">
+            Checking...
+        </div>
+
+        <div id="errorBox" class="error-box"></div>
+
+        <div id="resultBox" class="result-box">
+
+            <div class="result-row">
+                <span class="label">SERVER:</span>
+                <span class="value" id="resHostname">-</span>
+            </div>
+
+            <div class="result-row">
+                <span class="label">IP:PORT:</span>
+                <span class="value ip-full" id="resIpPort">-</span>
+            </div>
+
+            <div class="result-row">
+                <span class="label">STATUS:</span>
+                <span class="value" id="resStatus">-</span>
+            </div>
+
+            <div class="result-row">
+                <span class="label">PLAYERS:</span>
+                <span class="value" id="resPlayers">-</span>
+            </div>
+
+            <div class="result-row">
+                <span class="label">VERSION:</span>
+                <span class="value" id="resVersion">-</span>
+            </div>
+
+            <div class="result-row">
+                <span class="label">MOTD:</span>
+                <span class="value" id="resMotd">-</span>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <a
+                href="https://discord.gg/FDCfJ6ym9k"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="discord-link"
+            >
+                Discord
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    /*
+     * DEMO KEY SYSTEM
+     *
+     * Frontend-only keys are NOT secure.
+     * Anyone can inspect this JavaScript.
+     */
+    const ACCESS_KEY = "999CyberIplookerV1#@";
+
+    const keyScreen = document.getElementById("keyScreen");
+    const keyInput = document.getElementById("keyInput");
+    const keyBtn = document.getElementById("keyBtn");
+    const keyError = document.getElementById("keyError");
+    const app = document.getElementById("app");
+
+    function unlock() {
+        const enteredKey = keyInput.value.trim();
+
+        if (enteredKey === ACCESS_KEY) {
+            keyScreen.style.display = "none";
+            app.style.display = "block";
+            keyError.style.display = "none";
+        } else {
+            keyError.style.display = "block";
+            keyInput.value = "";
+            keyInput.focus();
+        }
+    }
+
+    keyBtn.addEventListener("click", unlock);
+
+    keyInput.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            unlock();
+        }
+    });
+
+
+    /* IP LOOKER */
+
+    const serverInput = document.getElementById("serverInput");
+    const lookupBtn = document.getElementById("lookupBtn");
+    const loading = document.getElementById("loading");
+    const resultBox = document.getElementById("resultBox");
+    const errorBox = document.getElementById("errorBox");
+
+    function hideAll() {
+        resultBox.classList.remove("show");
+        errorBox.style.display = "none";
+        loading.style.display = "none";
+    }
+
+    function showError(msg) {
+        errorBox.textContent = "⚠ " + msg;
+        errorBox.style.display = "block";
+    }
+
+    async function lookupServer() {
+        const server = serverInput.value.trim();
+
+        if (!server) {
+            showError("Enter server address!");
+            return;
+        }
+
+        hideAll();
+        loading.style.display = "block";
+        lookupBtn.disabled = true;
+
+        try {
+            const apiUrl =
+                `https://api.mcsrvstat.us/3/${encodeURIComponent(server)}`;
+
+            const res = await fetch(apiUrl);
+
+            if (!res.ok) {
+                throw new Error("Server not found or offline");
+            }
+
+            const data = await res.json();
+
+            loading.style.display = "none";
+
+            document.getElementById("resHostname").textContent = server;
+
+            const ipPort =
+                data.ip && data.port
+                    ? `${data.ip}:${data.port}`
+                    : "N/A";
+
+            document.getElementById("resIpPort").textContent = ipPort;
+
+            const statusEl = document.getElementById("resStatus");
+
+            if (data.online) {
+                statusEl.textContent = "● ONLINE";
+                statusEl.className = "value status-online";
+            } else {
+                statusEl.textContent = "● OFFLINE";
+                statusEl.className = "value status-offline";
+            }
+
+            document.getElementById("resPlayers").textContent =
+                data.players
+                    ? `${data.players.online || 0} / ${data.players.max || 0}`
+                    : "N/A";
+
+            document.getElementById("resVersion").textContent =
+                data.version?.name ||
+                data.version ||
+                "Unknown";
+
+            document.getElementById("resMotd").textContent =
+                data.motd?.clean
+                    ? data.motd.clean.join("\n")
+                    : (data.description || "No MOTD");
+
+            resultBox.classList.add("show");
+
+        } catch (err) {
+            loading.style.display = "none";
+            showError("Failed: " + err.message);
+
+        } finally {
+            lookupBtn.disabled = false;
+        }
+    }
+
+    lookupBtn.addEventListener("click", lookupServer);
+
+    serverInput.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            lookupServer();
+        }
+    });
+</script>
+
+</body>
+</html>
